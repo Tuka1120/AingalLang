@@ -2,11 +2,18 @@ Start Program
 
     Set x to 100 int
 
-    Define Function foo(x int) {
-        Display x, parent::parent::x
+    Define Function foo(n int) {
+        Set x to n int
+
+        If (n > 0) {
+            foo(n - 1)
+        }
+
+        Display x, parent::x
+        Return 0
     }
     End Function
 
-    foo(5)
+    foo(6)
 
 End Program

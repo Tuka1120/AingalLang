@@ -313,42 +313,36 @@ class Interpreter(AingalLangParserVisitor):
         return None
 
     def visitNumExpression(self, ctx):
-        if ctx.getChildCount() == 3:
-            left = self.visit(ctx.getChild(0))
-            op = ctx.getChild(1).getText()
-            right = self.visit(ctx.getChild(2))
-
-            if op == '+':
-                if isinstance(left, str) or isinstance(right, str):
-                    return str(left) + str(right)
-                else:
-                    return left + right
-            elif op == '-':
-                if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-                    return left - right
-                else:
-                    raise TypeError(f"Unsupported operand types for -: {type(left)} and {type(right)}")
-        return self.visit(ctx.getChild(0))
+        if ctx.getChildCount() == 1:
+            return self.visit(ctx.getChild(0))
+        
+        left = self.visit(ctx.numExpression(0))
+        op = ctx.getChild(1).getText()
+        right = self.visit(ctx.term())
+        
+        if op == '+':
+            return left + right
+        elif op == '-':
+            return left - right
+        else:
+            raise Exception(f"Unknown operator {op}")
 
     def visitTerm(self, ctx):
-        if ctx.getChildCount() == 3:
-            left = self.visit(ctx.getChild(0))
-            op = ctx.getChild(1).getText()
-            right = self.visit(ctx.getChild(2))
-
-            if op == '/':
-                # Type-aware division
-                if isinstance(left, int) and isinstance(right, int):
-                    return left // right  # Integer division
-                else:
-                    return float(left) / float(right)
-
-            elif op == '*':
-                return left * right
-            elif op == '%':
-                return left % right
-
-        return self.visit(ctx.getChild(0))
+        if ctx.getChildCount() == 1:
+            return self.visit(ctx.getChild(0))
+        
+        left = self.visit(ctx.term())
+        op = ctx.getChild(1).getText()
+        right = self.visit(ctx.factor())
+        
+        if op == '*':
+            return left * right
+        elif op == '/':
+            return left / right
+        elif op == '%':
+            return left % right
+        else:
+            raise Exception(f"Unknown operator {op}")
 
     def visitUnaryPlus(self, ctx):
         return +self.visit(ctx.factor())
