@@ -23,11 +23,11 @@ def main():
         print("Error: No .aingal files found in directory")
         return
     
-    input_file_path = os.path.join(input_dir, aingal_files[0]) # Use the first .aingal file found
+    input_file_path = os.path.join(input_dir, aingal_files[0]) 
     
-    output_path = os.path.splitext(input_file_path)[0] + '.txt'  # Create output path (same name with .txt extension)
+    output_path = os.path.splitext(input_file_path)[0] + '.txt'
 
-    with open(input_file_path, 'r', encoding='utf-8') as f:    # Rest of your existing code...
+    with open(input_file_path, 'r', encoding='utf-8') as f:
         code = f.read()
 
     input_stream = InputStream(code)

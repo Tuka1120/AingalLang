@@ -7,7 +7,16 @@ program : START_PROGRAM statement+ END_PROGRAM ;
 
 // Statements
 statement: 
+<<<<<<< HEAD
     functionCall
+=======
+      variableDeclaration
+    | reassignment
+    | functionDeclaration
+    | functionCall
+    | returnStatement
+    | displayStatement
+>>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
     | ifStatement
     | loopStatement
     | variableDeclaration
@@ -37,7 +46,7 @@ loopStatements:
 
 // Variable Declaration & Assignment
 variableDeclaration
-    : SET? (scopedIdentifier | IDENTIFIER) TO expression typeAnnotation?
+    : SET? (scopedIdentifier | leftHandSide) TO expression typeAnnotation?
     ;
 
 matrixExpression: (INVERT_MATRIX)? matrixAtom (TRANSPOSITION)?;
@@ -109,7 +118,15 @@ builtInFunctions:POWER_FUNC LPAREN numExpression COMMA numExpression RPAREN
 ifStatement: IF LPAREN boolExpression RPAREN (statement | blockStatement)
              (ELSE_IF LPAREN boolExpression RPAREN (statement | blockStatement))*
              (ELSE (statement | blockStatement))?;
+loopIfStatement: IF LPAREN boolExpression RPAREN (LBRACE loopStatements+ RBRACE | statement)
 
+<<<<<<< HEAD
+=======
+             (ELSE_IF LPAREN boolExpression RPAREN (LBRACE loopStatements+ RBRACE | statement))*
+
+             (ELSE (LBRACE loopStatements+ RBRACE | statement))?;
+
+>>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 loopStatement: forLoop | whileLoop;
 
 forLoop
@@ -165,11 +182,22 @@ factor
 
 operation : IDENTIFIER (INCREMENT | DECREMENT) SEMICOLON? ;
 
+<<<<<<< HEAD
 reassignment: (scopedIdentifier | IDENTIFIER) ((ADD_TO STRING | ADD_TO numExpression)
                           | SUBTRACT_FROM numExpression
                           | DIVIDE_FROM numExpression
                           | TIMES numExpression)
                SEMICOLON;
+=======
+leftHandSide
+    : IDENTIFIER
+    | scopedIdentifier  // Add this line
+    ;
+
+reassignment
+    : (scopedIdentifier | leftHandSide) ((ADD_TO | SUBTRACT_FROM | TIMES | DIVIDE_FROM) expression) SEMICOLON?
+    ;
+>>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 
 boolExpression
     : boolOrExpression
