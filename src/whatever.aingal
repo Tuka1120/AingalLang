@@ -15,7 +15,13 @@ Start Program
             Display x, parent::x, parent::parent::x, parent::parent::parent::x
             Return 0
         }
+
+        Display x, parent::x
+        Return 0
     }
+    End Function
+
+    foo(6)
 
     foo(6)
 
