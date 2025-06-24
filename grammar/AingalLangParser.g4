@@ -10,7 +10,7 @@ statement:
       variableDeclaration
     | reassignment
     | functionDeclaration
-    | functionCallStatement
+    | functionCall
     | returnStatement
     | displayStatement
     | ifStatement
@@ -36,7 +36,7 @@ loopStatements:
 
 // Variable Declaration & Assignment
 variableDeclaration
-    : SET? (scopedIdentifier | IDENTIFIER) TO expression typeAnnotation?
+    : SET? (scopedIdentifier | leftHandSide) TO expression typeAnnotation?
     ;
 
 matrixExpression: (INVERT_MATRIX)? matrixAtom (TRANSPOSITION)?;
@@ -108,7 +108,11 @@ builtInFunctions:POWER_FUNC LPAREN numExpression COMMA numExpression RPAREN
 ifStatement: IF LPAREN boolExpression RPAREN (statement | blockStatement)
              (ELSE_IF LPAREN boolExpression RPAREN (statement | blockStatement))*
              (ELSE (statement | blockStatement))?;
+loopIfStatement: IF LPAREN boolExpression RPAREN (LBRACE loopStatements+ RBRACE | statement)
 
+             (ELSE_IF LPAREN boolExpression RPAREN (LBRACE loopStatements+ RBRACE | statement))*
+
+             (ELSE (LBRACE loopStatements+ RBRACE | statement))?;
 
 loopStatement: forLoop | whileLoop;
 
@@ -170,11 +174,9 @@ leftHandSide
     | scopedIdentifier  // Add this line
     ;
 
-reassignment: (scopedIdentifier | IDENTIFIER) ((ADD_TO STRING | ADD_TO numExpression)
-                          | SUBTRACT_FROM numExpression
-                          | DIVIDE_FROM numExpression
-                          | TIMES numExpression)
-               SEMICOLON;
+reassignment
+    : (scopedIdentifier | leftHandSide) ((ADD_TO | SUBTRACT_FROM | TIMES | DIVIDE_FROM) expression) SEMICOLON?
+    ;
 
 boolExpression
     : boolOrExpression

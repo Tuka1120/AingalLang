@@ -197,6 +197,15 @@ class AingalLangParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by AingalLangParser#loopIfStatement.
+    def enterLoopIfStatement(self, ctx:AingalLangParser.LoopIfStatementContext):
+        pass
+
+    # Exit a parse tree produced by AingalLangParser#loopIfStatement.
+    def exitLoopIfStatement(self, ctx:AingalLangParser.LoopIfStatementContext):
+        pass
+
+
     # Enter a parse tree produced by AingalLangParser#loopStatement.
     def enterLoopStatement(self, ctx:AingalLangParser.LoopStatementContext):
         pass

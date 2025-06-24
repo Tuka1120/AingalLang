@@ -114,6 +114,11 @@ class AingalLangParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by AingalLangParser#loopIfStatement.
+    def visitLoopIfStatement(self, ctx:AingalLangParser.LoopIfStatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by AingalLangParser#loopStatement.
     def visitLoopStatement(self, ctx:AingalLangParser.LoopStatementContext):
         return self.visitChildren(ctx)

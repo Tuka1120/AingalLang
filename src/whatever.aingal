@@ -1,19 +1,10 @@
 Start Program
 
-    Set x to 100 int
-
-    Define Function foo(n int) {
-        Set x to n int
-
-        If (n > 0) {
-            foo(n - 1)
+    For (Set i to 0 int; i < 10; Set i to i + 1) {
+        If (i % 2 == 0) {
+            Display i
+            Display i
         }
-
-        Display x, parent::x
-        Return 0
     }
-    End Function
-
-    foo(6)
 
 End Program
