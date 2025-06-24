@@ -1,28 +1,6 @@
 Start Program
 
-    Set x to 100 int
-
-    Define Function foo(n int) {
-        parent::x to 7 int
-        Set x to 4 int
-        {
-            Set x to n int
-
-            if (n > 0) {
-                foo(n - 1)
-            }
-
-            Display x, parent::x, parent::parent::x, parent::parent::parent::x
-            Return 0
-        }
-
-        Display x, parent::x
-        Return 0
-    }
-    End Function
-
-    foo(6)
-
-    foo(6)
+    Set pisda to true bool
+    Display pisda
 
 End Program
