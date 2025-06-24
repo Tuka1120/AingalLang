@@ -239,20 +239,26 @@ class Interpreter(AingalLangParserVisitor):
     def visitScopedIdentifier(self, ctx):
         levels = len(ctx.getTokens(AingalLangParser.PARENT_SCOPE))
         name = ctx.IDENTIFIER().getText()
-        
-        # Start from current scope's parent (skip the immediate local scope)
+
+        scoped_name = '::'.join(['parent'] * levels + [name])
+
         current_scope = self.current_scope.parent
-        
-        # For each additional 'parent::', go up one more level
         for _ in range(levels - 1):
             if current_scope is None:
-                raise Exception(f"No parent scope exists while resolving 'parent::{name}'")
+                raise SyntaxError(
+                    f"❌ Semantic Error: No parent scope exists while resolving '{scoped_name}'\n"
+                    f"❌ Suggestion: Try using fewer 'parent::' levels — you exceeded the available scope depth."
+                )
             current_scope = current_scope.parent
 
         if current_scope is None:
-            raise Exception(f"No parent scope exists while resolving 'parent::{name}'")
+            raise SyntaxError(
+                f"❌ Semantic Error: No parent scope exists while resolving '{scoped_name}'\n"
+                f"❌ Suggestion: Try using fewer 'parent::' levels — you exceeded the available scope depth."
+            )
 
         return current_scope.get_variable(name)
+
     
     def visitBlockStatement(self, ctx):
         self.push_env()
