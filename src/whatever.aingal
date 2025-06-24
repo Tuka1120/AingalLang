@@ -1,10 +1,9 @@
 Start Program
 
-<<<<<<< HEAD
     Set x to 100 int
 
     Define Function foo(n int) {
-        x to 7 int
+        parent::x to 7 int
         Set x to 4 int
         {
             Set x to n int
@@ -15,18 +14,9 @@ Start Program
 
             Display x, parent::x, parent::parent::x, parent::parent::parent::x
             Return 0
-=======
-    For (Set i to 0 int; i < 10; Set i to i + 1) {
-        If (i % 2 == 0) {
-            Display i
-            Display i
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
         }
     }
 
-<<<<<<< HEAD
     foo(6)
 
-=======
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 End Program
