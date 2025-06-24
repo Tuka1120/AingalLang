@@ -182,22 +182,11 @@ factor
 
 operation : IDENTIFIER (INCREMENT | DECREMENT) SEMICOLON? ;
 
-<<<<<<< HEAD
 reassignment: (scopedIdentifier | IDENTIFIER) ((ADD_TO STRING | ADD_TO numExpression)
                           | SUBTRACT_FROM numExpression
                           | DIVIDE_FROM numExpression
                           | TIMES numExpression)
                SEMICOLON;
-=======
-leftHandSide
-    : IDENTIFIER
-    | scopedIdentifier  // Add this line
-    ;
-
-reassignment
-    : (scopedIdentifier | leftHandSide) ((ADD_TO | SUBTRACT_FROM | TIMES | DIVIDE_FROM) expression) SEMICOLON?
-    ;
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 
 boolExpression
     : boolOrExpression

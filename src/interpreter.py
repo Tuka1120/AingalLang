@@ -101,44 +101,7 @@ class Interpreter(AingalLangParserVisitor):
             else:
                 self.set_var(name, value)
         return None
-<<<<<<< HEAD
     
-=======
-
-
-    def cast_value(self, value, type_str):
-        if type_str == "int":
-            return int(float(value))  
-        elif type_str == "float":
-            return float(value)
-        elif type_str == "bool":
-            if isinstance(value, str):
-                return value.lower() == "true"
-            return bool(value)
-        elif type_str == "string":
-            return str(value)
-        elif type_str == "matrix":
-            if isinstance(value, list) and all(isinstance(row, list) for row in value):
-                return value
-            raise Exception("Invalid matrix format")
-        else:
-            raise Exception(f"Unknown type: {type_str}")
-
-    def resolve_scope_for_assignment(self, scoped_name):
-        # scoped_name might be e.g. "parent::parent::x"
-        parts = scoped_name.split("::")
-        var_name = parts[-1]
-        levels = len(parts) - 1
-
-        scope = self.current_scope
-        for _ in range(levels):
-            if scope.parent is None:
-                raise Exception(f"No parent scope exists while resolving assignment to '{scoped_name}'")
-            scope = scope.parent
-
-        return scope, var_name
-
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
     def lookup_variable(self, name):
         return self.current_scope.get_variable(name)
 
@@ -160,11 +123,7 @@ class Interpreter(AingalLangParserVisitor):
         return None
 
     def visitFunctionCall(self, ctx):
-<<<<<<< HEAD
         #print("New visitFunctionCall reached")
-=======
-        # print("New visitFunctionCall reached")
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 
         func_name = ctx.IDENTIFIER().getText()
         args = []
@@ -174,15 +133,9 @@ class Interpreter(AingalLangParserVisitor):
                 arg_val = self.visit(expr)
                 args.append(arg_val)
 
-<<<<<<< HEAD
         #print(f"Calling function: {func_name} with args: {args}")
         result = self.callFunction(func_name, args)
         return result        
-=======
-        # print(f"Calling function: {func_name} with args: {args}")
-        result = self.callFunction(func_name, args)
-        return result      
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 
     def callFunction(self, name, args):
         func = self.functions[name]
@@ -282,17 +235,10 @@ class Interpreter(AingalLangParserVisitor):
         result = self.visitChildren(ctx)
 
         if ctx.functionCall() and result is not None:
-<<<<<<< HEAD
             #print("DEBUG: Standalone function call result:", result)
             self.output_lines.append(" ")
 
         return None
-=======
-            # print("DEBUG: Standalone function call result:", result)
-            self.output_lines.append(f"Result: {result}")
-
-        return result
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
 
     def visitReassignment(self, ctx):
         name = ctx.IDENTIFIER().getText()
@@ -327,15 +273,8 @@ class Interpreter(AingalLangParserVisitor):
         expressions = ctx.expression()
         results = [self.visit(expr) for expr in expressions]
         display_output = ' '.join(str(r) for r in results)
-<<<<<<< HEAD
         print("DEBUG: Displaying", results)
         self.output_lines.append(display_output)
-=======
-        if self.debug:
-            print("DEBUG: Displaying", results)
-        self.output_lines.append(display_output)
-        print(display_output)  # Add this line to print to terminal
->>>>>>> 23e3f25928a7f4a9824f1e810d909891765f1633
         return None
 
     def visitNumExpression(self, ctx):
