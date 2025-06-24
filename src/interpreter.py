@@ -42,7 +42,7 @@ class Interpreter(AingalLangParserVisitor):
         self.functions = {}        
         self.output_lines = []
         self.call_stack = []
-        self.debug = debug 
+        self.debug = debug
 
     def push_env(self):
         self.current_scope = Scope(parent=self.current_scope)
@@ -72,7 +72,7 @@ class Interpreter(AingalLangParserVisitor):
             if result is not None and not isinstance(result, BreakStatement):
                 self.output_lines.append(str(result))
         return self.output_lines
-
+    
     def visitVariableDeclaration(self, ctx):
         if ctx.scopedIdentifier():
             # Don't visit scopedIdentifier (returns value), instead parse text
@@ -102,31 +102,6 @@ class Interpreter(AingalLangParserVisitor):
                 self.set_var(name, value)
         return None
     
-
-    def visitCastExpression(self, ctx):
-        type_str = ctx.typeAnnotation().getText().lower()
-        value = self.visit(ctx.factor())
-        return self.cast_value(value, type_str)
-
-    def cast_value(self, value, type_str):
-        if type_str == "int":
-            return int(float(value))  
-        elif type_str == "float":
-            return float(value)
-        elif type_str == "bool":
-            if isinstance(value, str):
-                return value.lower() == "true"
-            return bool(value)
-        elif type_str == "string":
-            return str(value)
-        elif type_str == "matrix":
-            if isinstance(value, list) and all(isinstance(row, list) for row in value):
-                return value
-            raise Exception("Invalid matrix format")
-        else:
-            raise Exception(f"Unknown type: {type_str}")
-
-
     def lookup_variable(self, name):
         return self.current_scope.get_variable(name)
 
@@ -145,26 +120,22 @@ class Interpreter(AingalLangParserVisitor):
             "body": body,
             "scope": self.current_scope
         }
-
         return None
 
     def visitFunctionCall(self, ctx):
-        if not ctx.IDENTIFIER():
-            return self.visitChildren(ctx)
+        #print("New visitFunctionCall reached")
 
         func_name = ctx.IDENTIFIER().getText()
-        
-        # ✅ Prevent misinterpreting keywords or undefined functions
-        if func_name not in self.functions:
-            raise Exception(f"Unknown function: '{func_name}'")
-
         args = []
+
         if ctx.argumentList():
             for expr in ctx.argumentList().expression():
                 arg_val = self.visit(expr)
                 args.append(arg_val)
 
-        return self.callFunction(func_name, args)    
+        #print(f"Calling function: {func_name} with args: {args}")
+        result = self.callFunction(func_name, args)
+        return result        
 
     def callFunction(self, name, args):
         func = self.functions[name]
@@ -192,7 +163,7 @@ class Interpreter(AingalLangParserVisitor):
         finally:
             self.current_scope = previous_scope
 
-        # print(f"Function {name} returned: {return_value}")
+        print(f"Function {name} returned: {return_value}")
         return return_value
     
     def visitBuiltInFunctions(self, ctx):
@@ -257,33 +228,13 @@ class Interpreter(AingalLangParserVisitor):
         raise FunctionReturn(value)
 
     def visitStatement(self, ctx):
-        # Handle control structures first
-        if ctx.ifStatement():
-            return self.visit(ctx.ifStatement())
-        elif ctx.loopStatement():
-            return self.visit(ctx.loopStatement())
-        # Then handle function calls
-        elif ctx.functionCall():
-            result = self.visit(ctx.functionCall())
-            if result is not None:
-                self.output_lines.append(f"Result: {result}")
-            return result
-        # Default case
-        return self.visitChildren(ctx)
-        
-    def resolve_scope_for_assignment(self, scoped_name):
-        # scoped_name might be e.g. "parent::parent::x"
-        parts = scoped_name.split("::")
-        var_name = parts[-1]
-        levels = len(parts) - 1
+        result = self.visitChildren(ctx)
 
-        scope = self.current_scope
-        for _ in range(levels):
-            if scope.parent is None:
-                raise Exception(f"No parent scope exists while resolving assignment to '{scoped_name}'")
-            scope = scope.parent
+        if ctx.functionCall() and result is not None:
+            #print("DEBUG: Standalone function call result:", result)
+            self.output_lines.append(" ")
 
-        return scope, var_name
+        return None
 
     def visitReassignment(self, ctx):
         name = ctx.IDENTIFIER().getText()
@@ -299,17 +250,27 @@ class Interpreter(AingalLangParserVisitor):
         elif ctx.DIVIDE_FROM():
             self.variables[name] /= value
         return self.variables[name]
+    
+    def resolve_scope_for_assignment(self, scoped_name):
+        # scoped_name might be e.g. "parent::parent::x"
+        parts = scoped_name.split("::")
+        var_name = parts[-1]
+        levels = len(parts) - 1
+
+        scope = self.current_scope
+        for _ in range(levels):
+            if scope.parent is None:
+                raise Exception(f"No parent scope exists while resolving assignment to '{scoped_name}'")
+            scope = scope.parent
+
+        return scope, var_name
 
     def visitDisplayStatement(self, ctx):
-        expressions = [self.visit(expr) for expr in ctx.expression()]
-        
-        def format_val(val):
-            if isinstance(val, float) and val.is_integer():
-                return str(int(val))  # Convert 5.0 → '5'
-            return str(val)
-
-        formatted = [format_val(val) for val in expressions]
-        print(display_output := " ".join(formatted))
+        expressions = ctx.expression()
+        results = [self.visit(expr) for expr in expressions]
+        display_output = ' '.join(str(r) for r in results)
+        print("DEBUG: Displaying", results)
+        self.output_lines.append(display_output)
         return None
 
     def visitNumExpression(self, ctx):
@@ -335,19 +296,12 @@ class Interpreter(AingalLangParserVisitor):
             left = self.visit(ctx.getChild(0))
             op = ctx.getChild(1).getText()
             right = self.visit(ctx.getChild(2))
-
-            if op == '/':
-                # Type-aware division
-                if isinstance(left, int) and isinstance(right, int):
-                    return left // right  # Integer division
-                else:
-                    return float(left) / float(right)
-
-            elif op == '*':
+            if op == '*':
                 return left * right
+            elif op == '/':
+                return left / right
             elif op == '%':
                 return left % right
-
         return self.visit(ctx.getChild(0))
 
     def visitUnaryPlus(self, ctx):
@@ -472,6 +426,31 @@ class Interpreter(AingalLangParserVisitor):
         else:
             raise Exception("Invalid matrix value: must be a number or scalar variable")
 
+    def visitCastExpression(self, ctx):
+        type_str = ctx.typeAnnotation().getText().lower()
+        value = self.visit(ctx.factor())
+        return self.cast_value(value, type_str)
+
+    def cast_value(self, value, type_str):
+        if type_str == "int":
+            return int(float(value))  # float → int works
+        elif type_str == "float":
+            return float(value)
+        elif type_str == "bool":
+            if isinstance(value, str):
+                return value.lower() == "true"
+            return bool(value)
+        elif type_str == "string":
+            return str(value)
+        elif type_str == "matrix":
+            # Assume matrix casting is only allowed on proper nested lists
+            if isinstance(value, list) and all(isinstance(row, list) for row in value):
+                return value
+            raise Exception("Invalid matrix format")
+        else:
+            raise Exception(f"Unknown type: {type_str}")
+
+
     def visitBoolExpression(self, ctx):
         return self.visitChildren(ctx)
 
@@ -506,7 +485,7 @@ class Interpreter(AingalLangParserVisitor):
         name = ctx.IDENTIFIER().getText()
         return bool(self.lookup_variable(name))
 
-    def visitifStatement(self, ctx):
+    def visitIfStatement(self, ctx):
         if self.visit(ctx.boolExpression(0)):
             stmt_or_block = ctx.statement(0) or ctx.blockStatement(0)
             if stmt_or_block:
@@ -569,7 +548,7 @@ class Interpreter(AingalLangParserVisitor):
         if ctx.forInit():
             self.visit(ctx.forInit())
 
-        while self.visit(ctx.boolExpression()):
+        while self.visit(ctx.cond): 
             self.push_env()  
 
             result = self.visit(ctx.forBody())

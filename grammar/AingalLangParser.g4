@@ -7,14 +7,15 @@ program : START_PROGRAM statement+ END_PROGRAM ;
 
 // Statements
 statement: 
-      variableDeclaration
-    | reassignment
-    | functionDeclaration
-    | functionCallStatement
-    | returnStatement
-    | displayStatement
+    functionCall
     | ifStatement
     | loopStatement
+    | variableDeclaration
+    | reassignment
+    | functionDeclaration
+    | functionCall
+    | returnStatement
+    | displayStatement
     | forLoop
     | whileLoop
     | blockStatement
@@ -109,7 +110,6 @@ ifStatement: IF LPAREN boolExpression RPAREN (statement | blockStatement)
              (ELSE_IF LPAREN boolExpression RPAREN (statement | blockStatement))*
              (ELSE (statement | blockStatement))?;
 
-
 loopStatement: forLoop | whileLoop;
 
 forLoop
@@ -160,15 +160,10 @@ factor
     | STRING                                   #factorString
     | operation                                #factorOperation
     | LPAREN numExpression RPAREN              #factorParens
-    | LPAREN typeAnnotation RPAREN factor      #castExpression 
+    | LPAREN typeAnnotation RPAREN factor        #castExpression
     ;
 
 operation : IDENTIFIER (INCREMENT | DECREMENT) SEMICOLON? ;
-
-leftHandSide
-    : IDENTIFIER
-    | scopedIdentifier  // Add this line
-    ;
 
 reassignment: (scopedIdentifier | IDENTIFIER) ((ADD_TO STRING | ADD_TO numExpression)
                           | SUBTRACT_FROM numExpression

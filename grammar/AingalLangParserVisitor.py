@@ -1,4 +1,4 @@
-# Generated from AingalLangParser.g4 by ANTLR 4.13.2
+# Generated from AingalLangParser.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .AingalLangParser import AingalLangParser
@@ -216,11 +216,6 @@ class AingalLangParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by AingalLangParser#operation.
     def visitOperation(self, ctx:AingalLangParser.OperationContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by AingalLangParser#leftHandSide.
-    def visitLeftHandSide(self, ctx:AingalLangParser.LeftHandSideContext):
         return self.visitChildren(ctx)
 
 

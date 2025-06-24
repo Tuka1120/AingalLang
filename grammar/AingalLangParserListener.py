@@ -1,4 +1,4 @@
-# Generated from AingalLangParser.g4 by ANTLR 4.13.2
+# Generated from AingalLangParser.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .AingalLangParser import AingalLangParser
@@ -383,15 +383,6 @@ class AingalLangParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by AingalLangParser#operation.
     def exitOperation(self, ctx:AingalLangParser.OperationContext):
-        pass
-
-
-    # Enter a parse tree produced by AingalLangParser#leftHandSide.
-    def enterLeftHandSide(self, ctx:AingalLangParser.LeftHandSideContext):
-        pass
-
-    # Exit a parse tree produced by AingalLangParser#leftHandSide.
-    def exitLeftHandSide(self, ctx:AingalLangParser.LeftHandSideContext):
         pass
 
 
