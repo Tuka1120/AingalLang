@@ -10,7 +10,7 @@ sys.path.append(grammar_path)
 from AingalLangLexer import AingalLangLexer
 from AingalLangParser import AingalLangParser
 from errorlistener import AingalLangErrorListener
-from interpreter import Interpreter
+from interpreter import Interpreter, InterpreterError
 
 def main():
     debug_mode = False
@@ -44,10 +44,16 @@ def main():
 
     try:
         tree = parser.program()
-        visitor = Interpreter(debug=debug_mode)  # Pass debug flag
+        visitor = Interpreter(debug=debug_mode)
         output = visitor.visit(tree)
     except SyntaxError as e:
         print(e)
+        return
+    except InterpreterError as e:
+        print(e)
+        return
+    except Exception as e:
+        print(f"❌ Unexpected error: {str(e)}")
         return
     
     # Write output to file

@@ -1,19 +1,37 @@
 Start Program
 
     Set x to 100 int
-
-    Define Function foo(n int) {
-        Set x to n int
-
-        If (n > 0) {
-            foo(n - 1)
-        }
-
+    
+    Define Function foo(x int) {
+        //Set x to 1 int
         Display x, parent::x
-        Return 0
     }
     End Function
 
-    foo(6)
+    foo(7)
+
+
+
+
+    Set x to 1 int
+    Set y to 100 int
+    {
+        Set x to 2 int
+        {
+            Set x to 3 int
+
+            Display x
+            Display parent::x
+            Display parent::parent::x
+
+            Display y
+            Display parent::y
+            Display parent::parent::y
+
+            // parent::parent::parent::x → Error if uncommented
+            // parent::parent::parent::y → Error if uncommented
+        }
+    }
+
 
 End Program

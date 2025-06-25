@@ -13,16 +13,47 @@ class FunctionReturn(Exception):
     def __init__(self, value):
         self.value = value
 
+class InterpreterError(Exception):
+    def __init__(self, message, line=None, column=None, code_line=None, suggestion=None):
+        self.message = message
+        self.line = line
+        self.column = column
+        self.code_line = code_line
+        self.suggestion = suggestion
+        
+    def __str__(self):
+        parts = [f"❌ Runtime Error: {self.message}"]
+        if self.line is not None:
+            parts.append(f"❌ At line {self.line}")
+        if self.code_line is not None:
+            parts.append(f"❌ Code: {self.code_line}")
+            if self.column is not None:
+                pointer = " " * self.column + "^"
+                parts.append(f"❌        {pointer}")
+        if self.suggestion is not None:
+            parts.append(f"❌ Suggestion: {self.suggestion}")
+        return "\n".join(parts)
+
 class Scope:
     def __init__(self, parent=None):
         self.variables = {}
+        self.parameters = set()  # Track parameters separately
         self.parent = parent
 
-    def set_variable(self, name, value):
+    def set_variable(self, name, value, is_param=False):
+        if is_param:
+            self.parameters.add(name)
         self.variables[name] = value
 
     def has_variable(self, name):
         return name in self.variables
+
+    def is_parameter(self, name):
+        if name in self.parameters:
+            return True
+        if self.parent:
+            return self.parent.is_parameter(name)
+        return False
 
     def get_variable(self, name):
         if name in self.variables:
@@ -72,6 +103,16 @@ class Interpreter(AingalLangParserVisitor):
             if result is not None and not isinstance(result, BreakStatement):
                 self.output_lines.append(str(result))
         return self.output_lines
+    
+    def get_source_line(self, ctx):
+        """Helper to get the source line text for error messages"""
+        token = ctx.start
+        input_stream = token.getInputStream()
+        if input_stream:
+            lines = input_stream.strdata.split('\n')
+            if 0 <= token.line-1 < len(lines):
+                return lines[token.line-1]
+        return None
 
     def visitVariableDeclaration(self, ctx):
         if ctx.scopedIdentifier():
@@ -88,18 +129,30 @@ class Interpreter(AingalLangParserVisitor):
                 raise Exception(f"Variable '{var_name}' already declared in this scope.")
             scope.set_variable(var_name, value)
         else:
-            # Current behavior for normal identifiers
             name = ctx.leftHandSide().getText()
             value = self.visit(ctx.expression())
             type_ctx = ctx.typeAnnotation()
             declared_type = type_ctx.getText().lower() if type_ctx else None
+            
+            if self.current_scope.is_parameter(name):
+                line = ctx.start.line
+                column = ctx.start.column
+                code_line = self.get_source_line(ctx)
+                raise InterpreterError(
+                    message=f"Cannot redeclare parameter '{name}' in this scope",
+                    line=line,
+                    column=column,
+                    code_line=code_line,
+                    suggestion="Parameters cannot be redeclared in the same function scope"
+                )
+            
+            # Check if variable already exists in current scope
+            if self.current_scope.has_variable(name):
+                raise Exception(f"Variable '{name}' is already declared in this scope")
+                
             if declared_type:
                 value = self.cast_value(value, declared_type)
-                if self.current_scope.has_variable(name):
-                    raise Exception(f"Variable '{name}' already declared in this scope.")
-                self.current_scope.set_variable(name, value)
-            else:
-                self.set_var(name, value)
+            self.current_scope.set_variable(name, value)
         return None
 
 
@@ -180,25 +233,24 @@ class Interpreter(AingalLangParserVisitor):
         if len(param_names) != len(args):
             raise Exception(f"Function '{name}' expects {len(param_names)} args, got {len(args)}")
 
+        # Create new scope with defining_scope as parent
         local_scope = Scope(parent=defining_scope)
 
+        # Set parameter values and mark them as parameters
         for pname, arg in zip(param_names, args):
-            local_scope.set_variable(pname, arg)
+            local_scope.set_variable(pname, arg, is_param=True)
 
         previous_scope = self.current_scope
         self.current_scope = local_scope
 
         try:
-            self.visit(body)
+            result = self.visit(body)
         except FunctionReturn as fr:
-            return_value = fr.value
-        else:
-            return_value = None
+            result = fr.value
         finally:
             self.current_scope = previous_scope
 
-        # print(f"Function {name} returned: {return_value}")
-        return return_value
+        return result
     
     def visitBuiltInFunctions(self, ctx):
         if ctx.POWER_FUNC():
@@ -240,22 +292,21 @@ class Interpreter(AingalLangParserVisitor):
         levels = len(ctx.getTokens(AingalLangParser.PARENT_SCOPE))
         name = ctx.IDENTIFIER().getText()
 
-        scoped_name = '::'.join(['parent'] * levels + [name])
-
-        current_scope = self.current_scope.parent
-        for _ in range(levels - 1):
-            if current_scope is None:
-                raise SyntaxError(
-                    f"❌ Semantic Error: No parent scope exists while resolving '{scoped_name}'\n"
-                    f"❌ Suggestion: Try using fewer 'parent::' levels — you exceeded the available scope depth."
+        current_scope = self.current_scope.parent if self.current_scope.parent else self.current_scope
+        
+        for _ in range(levels):
+            if current_scope.parent is None:
+                line = ctx.start.line
+                column = ctx.start.column
+                code_line = self.get_source_line(ctx)
+                raise InterpreterError(
+                    message=f"No parent scope exists while resolving 'parent::{name}'",
+                    line=line,
+                    column=column,
+                    code_line=code_line,
+                    suggestion="Try using fewer 'parent::' levels - you exceeded the available scope depth"
                 )
             current_scope = current_scope.parent
-
-        if current_scope is None:
-            raise SyntaxError(
-                f"❌ Semantic Error: No parent scope exists while resolving '{scoped_name}'\n"
-                f"❌ Suggestion: Try using fewer 'parent::' levels — you exceeded the available scope depth."
-            )
 
         return current_scope.get_variable(name)
 
@@ -302,7 +353,7 @@ class Interpreter(AingalLangParserVisitor):
         if self.debug:
             print("DEBUG: Displaying", results)
         self.output_lines.append(display_output)
-        print(display_output)  # Add this line to print to terminal
+        print(display_output)
         return None
 
     def visitNumExpression(self, ctx):
