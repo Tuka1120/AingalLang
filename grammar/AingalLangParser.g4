@@ -111,7 +111,10 @@ ifStatement: IF LPAREN boolExpression RPAREN (statement | blockStatement)
              (ELSE (statement | blockStatement))?;
 loopIfStatement: IF LPAREN boolExpression RPAREN (LBRACE loopStatements+ RBRACE | statement)
 
-loopStatement: forLoop | whileLoop;
+loopStatement: 
+    forLoop 
+    | whileLoop
+    ;
 
 forLoop
     : FOR LPAREN forInit? SEMICOLON
